@@ -1,5 +1,6 @@
 package com.example.upload;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,15 +15,22 @@ import java.util.Map;
 @CrossOrigin
 public class FileUploadController {
 
+    @Autowired
+    private UploadRepository uploadRepository;
+
     @PostMapping(consumes = "multipart/form-data")
-    public ResponseEntity uploadFile(
+    public ResponseEntity<?> uploadFile(
             @RequestPart("file") MultipartFile file,
             @RequestPart("request") UploadRequest request) {
 
-        HashMap resp = new HashMap() {{
-            put("file", file.getOriginalFilename());
-            put("request", request);
-        }};
-        return ResponseEntity.ok().body(resp);
+        // Save to MongoDB
+        UploadRequest savedRequest = uploadRepository.save(request);
+
+        // Response
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("file", file.getOriginalFilename());
+        resp.put("request", savedRequest);
+
+        return ResponseEntity.ok(resp);
     }
 }
